@@ -1,0 +1,50 @@
+name: "Terraform Destroy"
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: "Escribe DESTROY para confirmar"
+        required: true
+        type: string
+
+env:
+  TF_VERSION: "1.7.5"
+  AWS_REGION: "us-east-1"
+
+jobs:
+  terraform-destroy:
+    name: "Destroy Infrastructure"
+    runs-on: ubuntu-latest
+    if: github.event.inputs.confirm == 'DESTROY'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token:     ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region:            ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Destroy
+        run: |
+          terraform destroy -auto-approve \
+            -var="vpc_id=${{ secrets.TF_VAR_VPC_ID }}" \
+            -var="public_subnet_ids=${{ secrets.TF_VAR_PUBLIC_SUBNET_IDS }}" \
+            -var="private_subnet_ids=${{ secrets.TF_VAR_PRIVATE_SUBNET_IDS }}" \
+            -var="ami_id=${{ secrets.TF_VAR_AMI_ID }}" \
+            -var="key_name=${{ secrets.TF_VAR_KEY_NAME }}" \
+            -var="db_username=${{ secrets.TF_VAR_DB_USERNAME }}" \
+            -var="db_password=${{ secrets.TF_VAR_DB_PASSWORD }}"
