@@ -38,13 +38,17 @@ jobs:
       - name: Terraform Init
         run: terraform init
 
-      - name: Terraform Destroy
+      - name: Crear tfvars desde secrets
         run: |
-          terraform destroy -auto-approve \
-            -var="vpc_id=${{ secrets.TF_VAR_VPC_ID }}" \
-            -var="public_subnet_ids=${{ secrets.TF_VAR_PUBLIC_SUBNET_IDS }}" \
-            -var="private_subnet_ids=${{ secrets.TF_VAR_PRIVATE_SUBNET_IDS }}" \
-            -var="ami_id=${{ secrets.TF_VAR_AMI_ID }}" \
-            -var="key_name=${{ secrets.TF_VAR_KEY_NAME }}" \
-            -var="db_username=${{ secrets.TF_VAR_DB_USERNAME }}" \
-            -var="db_password=${{ secrets.TF_VAR_DB_PASSWORD }}"
+          cat > pipeline.auto.tfvars << TFVARS
+          vpc_id             = "${{ secrets.TF_VAR_VPC_ID }}"
+          public_subnet_ids  = ${{ secrets.TF_VAR_PUBLIC_SUBNET_IDS }}
+          private_subnet_ids = ${{ secrets.TF_VAR_PRIVATE_SUBNET_IDS }}
+          ami_id             = "${{ secrets.TF_VAR_AMI_ID }}"
+          key_name           = "${{ secrets.TF_VAR_KEY_NAME }}"
+          db_username        = "${{ secrets.TF_VAR_DB_USERNAME }}"
+          db_password        = "${{ secrets.TF_VAR_DB_PASSWORD }}"
+          TFVARS
+
+      - name: Terraform Destroy
+        run: terraform destroy -auto-approve
