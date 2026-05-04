@@ -34,5 +34,5 @@ variable "db_name" {
   default = "tienda_tecnologica"
 }
 variable "account_id" {
-  default = "533267352641"
+  default = "975050244181"
 }
