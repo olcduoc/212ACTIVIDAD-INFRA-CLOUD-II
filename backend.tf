@@ -9,7 +9,7 @@ terraform {
   }
 
   backend "s3" {
-    bucket         = "tienda-tech-tfstate-533267352641"
+    bucket         = "tienda-tech-tfstate-975050244181"
     key            = "tienda-tech-ec2/terraform.tfstate"
     region         = "us-east-1"
     dynamodb_table = "tienda-tech-tf-lock"
