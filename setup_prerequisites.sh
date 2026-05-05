@@ -13,7 +13,7 @@ REGION="us-east-1"
 PROJECT="tienda-tech"
 BUCKET="${PROJECT}-tfstate-${ACCOUNT_ID}"
 DYNAMO_TABLE="${PROJECT}-tf-lock"
-APP_DIR="$HOME/Documents/desarrollo-infra-cloud-II/tienda-tech-EC2"
+APP_DIR="/home/oleivac/Documents/LabInfraCloud-II-Act2.1/tienda-tech-EC2"
 
 echo ""
 echo "======================================================="
