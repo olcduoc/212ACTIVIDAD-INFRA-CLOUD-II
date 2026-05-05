@@ -13,7 +13,13 @@ REGION="us-east-1"
 PROJECT="tienda-tech"
 BUCKET="${PROJECT}-tfstate-${ACCOUNT_ID}"
 DYNAMO_TABLE="${PROJECT}-tf-lock"
-APP_DIR="/home/oleivac/Documents/LabInfraCloud-II-Act2.1/tienda-tech-EC2"
+APP_DIR="$HOME/tienda-tech-EC2"
+REPO_APP="https://github.com/olcduoc/tienda-tech-EC2.git"
+
+if [ ! -d "$APP_DIR" ]; then
+  echo ">>> Clonando tienda-tech-EC2..."
+  git clone "$REPO_APP" "$APP_DIR"
+fi
 
 echo ""
 echo "======================================================="
