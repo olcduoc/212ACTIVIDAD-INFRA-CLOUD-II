@@ -89,12 +89,13 @@ resource "aws_cloudwatch_dashboard" "tienda_tech" {
     widgets = [
       {
         type   = "metric"
-        x = 0
-        y = 0
-        width = 12
+        x      = 0
+        y      = 0
+        width  = 12
         height = 6
         properties = {
           title   = "EC2 - CPU Utilization"
+          region  = var.aws_region
           period  = 60
           stat    = "Average"
           metrics = [["AWS/EC2", "CPUUtilization",
@@ -103,12 +104,13 @@ resource "aws_cloudwatch_dashboard" "tienda_tech" {
       },
       {
         type   = "metric"
-        x = 12
-        y = 0
-        width = 12
+        x      = 12
+        y      = 0
+        width  = 12
         height = 6
         properties = {
           title   = "RDS - CPU Utilization"
+          region  = var.aws_region
           period  = 60
           stat    = "Average"
           metrics = [["AWS/RDS", "CPUUtilization",
@@ -117,12 +119,13 @@ resource "aws_cloudwatch_dashboard" "tienda_tech" {
       },
       {
         type   = "metric"
-        x = 0
-        y = 6
-        width = 12
+        x      = 0
+        y      = 6
+        width  = 12
         height = 6
         properties = {
           title   = "RDS - Free Storage Space"
+          region  = var.aws_region
           period  = 60
           stat    = "Average"
           metrics = [["AWS/RDS", "FreeStorageSpace",
@@ -131,12 +134,13 @@ resource "aws_cloudwatch_dashboard" "tienda_tech" {
       },
       {
         type   = "metric"
-        x = 12
-        y = 6
-        width = 12
+        x      = 12
+        y      = 6
+        width  = 12
         height = 6
         properties = {
           title   = "RDS - Database Connections"
+          region  = var.aws_region
           period  = 60
           stat    = "Average"
           metrics = [["AWS/RDS", "DatabaseConnections",
@@ -145,12 +149,13 @@ resource "aws_cloudwatch_dashboard" "tienda_tech" {
       },
       {
         type   = "metric"
-        x = 0
-        y = 12
-        width = 24
+        x      = 0
+        y      = 12
+        width  = 24
         height = 6
         properties = {
           title   = "ALB - Request Count"
+          region  = var.aws_region
           period  = 60
           stat    = "Sum"
           metrics = [["AWS/ApplicationELB", "RequestCount",
