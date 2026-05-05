@@ -70,4 +70,40 @@ systemctl daemon-reload
 systemctl enable app-compose.service
 systemctl start app-compose.service
 
+# ─── CloudWatch Agent ────────────────────────────────────────────────────
+yum install -y amazon-cloudwatch-agent
+
+
+# ─── CloudWatch Agent ──────────────────────────────────────────────────────
+yum install -y amazon-cloudwatch-agent
+
+mkdir -p /opt/aws/amazon-cloudwatch-agent/etc/
+
+cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json << 'CWA_CONFIG'
+{
+  "metrics": {
+    "append_dimensions": {
+      "InstanceId": "${aws:InstanceId}",
+      "AutoScalingGroupName": "${aws:AutoScalingGroupName}"
+    },
+    "metrics_collected": {
+      "mem": {
+        "measurement": ["mem_used_percent"],
+        "metrics_collection_interval": 60
+      },
+      "disk": {
+        "measurement": ["disk_used_percent"],
+        "resources": ["/"],
+        "metrics_collection_interval": 60
+      }
+    }
+  }
+}
+CWA_CONFIG
+
+/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
+  -a fetch-config -m ec2 -s \
+  -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+
+echo "=== CloudWatch Agent iniciado: $(date) ==="
 echo "=== user_data completado: $(date) ==="

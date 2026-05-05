@@ -36,3 +36,8 @@ variable "db_name" {
 variable "account_id" {
   default = "975050244181"
 }
+
+variable "sns_email" {
+  description = "Correo para recibir alertas CloudWatch"
+  type        = string
+}
