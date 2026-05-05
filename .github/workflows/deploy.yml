@@ -47,6 +47,7 @@ jobs:
           key_name           = "${{ secrets.TF_VAR_KEY_NAME }}"
           db_username        = "${{ secrets.TF_VAR_DB_USERNAME }}"
           db_password        = "${{ secrets.TF_VAR_DB_PASSWORD }}"
+sns_email          = "${{ secrets.SNS_EMAIL }}"
           TFVARS
 
       - name: Terraform Plan
