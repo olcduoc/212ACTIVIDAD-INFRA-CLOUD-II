@@ -15,10 +15,16 @@ curl -SL https://github.com/docker/compose/releases/download/v2.29.2/docker-comp
 chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
 ln -sf /usr/local/lib/docker/cli-plugins/docker-compose /usr/bin/docker-compose
 
-aws ecr get-login-password --region ${aws_region} | \
-  docker login --username AWS \
-  --password-stdin ${account_id}.dkr.ecr.${aws_region}.amazonaws.com
+# ─── ECR Login con retry ─────────────────────────────────────────────────
+for i in 1 2 3 4 5; do
+  aws ecr get-login-password --region ${aws_region} | \
+    docker login --username AWS \
+    --password-stdin ${account_id}.dkr.ecr.${aws_region}.amazonaws.com && break
+  echo "ECR login intento $i fallido, esperando 10s..."
+  sleep 10
+done
 
+# ─── Docker Compose App ──────────────────────────────────────────────────
 mkdir -p /opt/app
 
 cat > /opt/app/docker-compose.yml << 'COMPOSE'
@@ -30,6 +36,7 @@ services:
       - "80:80"
     depends_on:
       - backend
+    restart: unless-stopped
 
   backend:
     image: ${account_id}.dkr.ecr.${aws_region}.amazonaws.com/tienda-tech-backend:latest
@@ -38,6 +45,7 @@ services:
       - .env
     ports:
       - "3001:3001"
+    restart: unless-stopped
 COMPOSE
 
 cat > /opt/app/.env << ENVFILE
@@ -47,6 +55,11 @@ DB_PASSWORD=${db_password}
 DB_NAME=${db_name}
 DB_PORT=3306
 ENVFILE
+
+# Copiar a home de ec2-user para debug manual
+cp /opt/app/docker-compose.yml /home/ec2-user/docker-compose.yml
+cp /opt/app/.env /home/ec2-user/.env
+chown ec2-user:ec2-user /home/ec2-user/docker-compose.yml /home/ec2-user/.env
 
 cat > /etc/systemd/system/app-compose.service << 'SERVICE'
 [Unit]
@@ -70,11 +83,73 @@ systemctl daemon-reload
 systemctl enable app-compose.service
 systemctl start app-compose.service
 
+# ─── Esperar que backend esté listo ──────────────────────────────────────
+echo "=== Esperando que backend inicie... ==="
+for i in $(seq 1 30); do
+  if curl -sf http://localhost:3001/api/productos > /dev/null 2>&1; then
+    echo "Backend listo en intento $i"
+    break
+  fi
+  echo "Backend no listo, intento $i/30, esperando 10s..."
+  sleep 10
+done
+
+# ─── Auto-init DB schema (idempotente) ───────────────────────────────────
+echo "=== Inicializando schema DB... ==="
+mysql -h ${db_host} -u ${db_user} -p${db_password} << 'SQLEOF'
+CREATE DATABASE IF NOT EXISTS ${db_name};
+USE ${db_name};
+
+CREATE TABLE IF NOT EXISTS productos (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(255) NOT NULL,
+  descripcion TEXT,
+  precio DECIMAL(10,2) NOT NULL,
+  stock INT NOT NULL
+);
+SQLEOF
+
+# ─── Auto-carga de productos (solo si tabla vacía) ───────────────────────
+echo "=== Verificando productos... ==="
+PRODUCT_COUNT=$(mysql -h ${db_host} -u ${db_user} -p${db_password} -N -e \
+  "SELECT COUNT(*) FROM ${db_name}.productos;" 2>/dev/null || echo "0")
+
+if [ "$PRODUCT_COUNT" = "0" ]; then
+  echo "=== Tabla vacía, cargando productos de prueba... ==="
+  
+  # Esperar que backend responda
+  sleep 5
+  
+  curl -s -X POST http://localhost:3001/api/productos \
+    -H "Content-Type: application/json" \
+    -d '{"nombre":"Laptop Dell XPS 15","descripcion":"Intel Core i7-13700H 16GB RAM DDR5 512GB SSD NVMe","precio":1299990,"stock":8}'
+  
+  curl -s -X POST http://localhost:3001/api/productos \
+    -H "Content-Type: application/json" \
+    -d '{"nombre":"iPhone 15 Pro Max","descripcion":"256GB Titanio Azul Chip A17 Pro USB-C","precio":1499990,"stock":5}'
+  
+  curl -s -X POST http://localhost:3001/api/productos \
+    -H "Content-Type: application/json" \
+    -d '{"nombre":"Samsung Galaxy S24 Ultra","descripcion":"512GB Negro Titanio Snapdragon 8 Gen 3 S Pen","precio":1199990,"stock":12}'
+  
+  curl -s -X POST http://localhost:3001/api/productos \
+    -H "Content-Type: application/json" \
+    -d '{"nombre":"MacBook Pro M3 Pro","descripcion":"14 pulgadas Chip M3 Pro 18GB RAM 1TB SSD","precio":2199990,"stock":3}'
+  
+  curl -s -X POST http://localhost:3001/api/productos \
+    -H "Content-Type: application/json" \
+    -d '{"nombre":"Sony WH-1000XM5","descripcion":"Audifonos Bluetooth Noise Cancelling 30h bateria","precio":349990,"stock":20}'
+  
+  curl -s -X POST http://localhost:3001/api/productos \
+    -H "Content-Type: application/json" \
+    -d '{"nombre":"iPad Air M2","descripcion":"11 pulgadas 128GB WiFi Chip M2 Azul Cielo","precio":749990,"stock":7}'
+  
+  echo "=== Productos cargados: $(date) ==="
+else
+  echo "=== Tabla ya tiene $PRODUCT_COUNT productos, no se cargan duplicados ==="
+fi
+
 # ─── CloudWatch Agent ────────────────────────────────────────────────────
-yum install -y amazon-cloudwatch-agent
-
-
-# ─── CloudWatch Agent ──────────────────────────────────────────────────────
 yum install -y amazon-cloudwatch-agent
 
 mkdir -p /opt/aws/amazon-cloudwatch-agent/etc/
@@ -107,7 +182,7 @@ CWA_CONFIG
 
 echo "=== CloudWatch Agent iniciado: $(date) ==="
 
-# ─── Instance Info HTTP Server ─────────────────────────────────────────────
+# ─── Instance Info HTTP Server ───────────────────────────────────────────
 cat > /usr/local/bin/instance-info-server.py << 'PYSERVER'
 #!/usr/bin/env python3
 import http.server
