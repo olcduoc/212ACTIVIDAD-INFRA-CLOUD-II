@@ -6,6 +6,7 @@ variable "public_subnet_ids" { type = list(string) }
 variable "sg_ec2_id"         { type = string }
 variable "tg_frontend_arn"   { type = string }
 variable "tg_backend_arn"    { type = string }
+variable "tg_info_arn"       { type = string }
 variable "db_host"           { type = string }
 variable "db_name"           { type = string }
 variable "aws_region"        { type = string }

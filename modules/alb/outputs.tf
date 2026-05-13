@@ -5,3 +5,4 @@ output "tg_backend_arn"  { value = aws_lb_target_group.backend.arn }
 output "alb_arn_suffix" {
   value = aws_lb.main.arn_suffix
 }
+output "tg_info_arn"     { value = aws_lb_target_group.info.arn }

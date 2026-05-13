@@ -8,3 +8,7 @@ terraform.tfvars
 .env
 *.pem
 *.key
+
+# Terraform plan artifacts
+plan.log
+tfplan.out

@@ -32,6 +32,7 @@ module "asg" {
   sg_ec2_id         = module.security.sg_ec2_id
   tg_frontend_arn   = module.alb.tg_frontend_arn
   tg_backend_arn    = module.alb.tg_backend_arn
+  tg_info_arn       = module.alb.tg_info_arn
   db_host           = module.rds.rds_endpoint
   db_username       = var.db_username
   db_password       = var.db_password

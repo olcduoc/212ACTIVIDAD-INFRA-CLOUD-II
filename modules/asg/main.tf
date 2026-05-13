@@ -14,6 +14,16 @@ resource "aws_launch_template" "app" {
     name = data.aws_iam_instance_profile.lab.name
   }
 
+  block_device_mappings {
+    device_name = "/dev/xvda"
+    ebs {
+      volume_size           = 50
+      volume_type           = "gp3"
+      encrypted             = true
+      delete_on_termination = true
+    }
+  }
+
   user_data = base64encode(templatefile("${path.root}/scripts/user_data.sh", {
     db_host     = var.db_host
     db_user     = var.db_username
@@ -36,8 +46,8 @@ resource "aws_launch_template" "app" {
 resource "aws_autoscaling_group" "main" {
   name                = "${var.project_name}-ASG"
   vpc_zone_identifier = var.public_subnet_ids
-  min_size            = 1
-  desired_capacity    = 1
+  min_size            = 2
+  desired_capacity    = 2
   max_size            = 3
 
   launch_template {
@@ -45,7 +55,7 @@ resource "aws_autoscaling_group" "main" {
     version = "$Latest"
   }
 
-  target_group_arns         = [var.tg_frontend_arn, var.tg_backend_arn]
+  target_group_arns         = [var.tg_frontend_arn, var.tg_backend_arn, var.tg_info_arn]
   health_check_type         = "ELB"
   health_check_grace_period = 180
 

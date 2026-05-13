@@ -28,6 +28,24 @@ resource "aws_cloudwatch_metric_alarm" "ec2_cpu_alto" {
   }
 }
 
+resource "aws_cloudwatch_metric_alarm" "ec2_memoria_alto" {
+  alarm_name          = "${var.project_name}-ec2-memoria-alto"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 2
+  metric_name         = "mem_used_percent"
+  namespace           = "CWAgent"
+  period              = 120
+  statistic           = "Average"
+  threshold           = 70
+  alarm_description   = "Memoria EC2 supera el 70%"
+  alarm_actions       = [aws_sns_topic.alertas.arn]
+  ok_actions          = [aws_sns_topic.alertas.arn]
+
+  dimensions = {
+    AutoScalingGroupName = module.asg.asg_name
+  }
+}
+
 # ─── ALARMAS RDS ───────────────────────────────────────────────────────────
 resource "aws_cloudwatch_metric_alarm" "rds_cpu_alto" {
   alarm_name          = "${var.project_name}-rds-cpu-alto"
@@ -151,7 +169,54 @@ resource "aws_cloudwatch_dashboard" "tienda_tech" {
         type   = "metric"
         x      = 0
         y      = 12
-        width  = 24
+        width  = 12
+        height = 6
+        properties = {
+          title   = "EC2 - Memory Used %"
+          region  = var.aws_region
+          period  = 60
+          stat    = "Average"
+          metrics = [["CWAgent", "mem_used_percent",
+            "AutoScalingGroupName", module.asg.asg_name]]
+        }
+      },
+      {
+        type   = "metric"
+        x      = 12
+        y      = 12
+        width  = 12
+        height = 6
+        properties = {
+          title   = "EC2 - Disk Used %"
+          region  = var.aws_region
+          period  = 60
+          stat    = "Average"
+          metrics = [["CWAgent", "disk_used_percent",
+            "AutoScalingGroupName", module.asg.asg_name]]
+        }
+      },
+      {
+        type   = "metric"
+        x      = 0
+        y      = 18
+        width  = 12
+        height = 6
+        properties = {
+          title   = "EC2 - Network In/Out"
+          region  = var.aws_region
+          period  = 60
+          stat    = "Average"
+          metrics = [
+            ["AWS/EC2", "NetworkIn", "AutoScalingGroupName", module.asg.asg_name],
+            [".", "NetworkOut", ".", "."]
+          ]
+        }
+      },
+      {
+        type   = "metric"
+        x      = 12
+        y      = 18
+        width  = 12
         height = 6
         properties = {
           title   = "ALB - Request Count"
