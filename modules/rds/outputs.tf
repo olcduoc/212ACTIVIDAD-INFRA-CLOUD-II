@@ -3,7 +3,6 @@ output "rds_endpoint" {
   sensitive = true
 }
 output "multi_az" { value = aws_db_instance.mysql.multi_az }
-
 output "db_identifier" {
-  value = aws_db_instance.mysql.id
+  value = aws_db_instance.mysql.identifier
 }

@@ -106,125 +106,45 @@ resource "aws_cloudwatch_dashboard" "tienda_tech" {
   dashboard_body = jsonencode({
     widgets = [
       {
-        type   = "metric"
-        x      = 0
-        y      = 0
-        width  = 12
-        height = 6
+        type = "metric", x = 0, y = 0, width = 12, height = 6
         properties = {
-          title   = "EC2 - CPU Utilization"
-          region  = var.aws_region
-          period  = 60
-          stat    = "Average"
-          metrics = [["AWS/EC2", "CPUUtilization",
-            "AutoScalingGroupName", module.asg.asg_name]]
+          title = "EC2 - CPU Utilization", region = var.aws_region, period = 60, stat = "Average"
+          metrics = [["AWS/EC2", "CPUUtilization", "AutoScalingGroupName", module.asg.asg_name]]
         }
       },
       {
-        type   = "metric"
-        x      = 12
-        y      = 0
-        width  = 12
-        height = 6
+        type = "metric", x = 12, y = 0, width = 12, height = 6
         properties = {
-          title   = "RDS - CPU Utilization"
-          region  = var.aws_region
-          period  = 60
-          stat    = "Average"
-          metrics = [["AWS/RDS", "CPUUtilization",
-            "DBInstanceIdentifier", module.rds.db_identifier]]
+          title = "EC2 - Memory Used %", region = var.aws_region, period = 60, stat = "Average"
+          metrics = [["CWAgent", "mem_used_percent", "AutoScalingGroupName", module.asg.asg_name]]
         }
       },
       {
-        type   = "metric"
-        x      = 0
-        y      = 6
-        width  = 12
-        height = 6
+        type = "metric", x = 0, y = 6, width = 12, height = 6
         properties = {
-          title   = "RDS - Free Storage Space"
-          region  = var.aws_region
-          period  = 60
-          stat    = "Average"
-          metrics = [["AWS/RDS", "FreeStorageSpace",
-            "DBInstanceIdentifier", module.rds.db_identifier]]
+          title = "EC2 - Disk Used %", region = var.aws_region, period = 60, stat = "Average"
+          metrics = [["CWAgent", "disk_used_percent", "AutoScalingGroupName", module.asg.asg_name]]
         }
       },
       {
-        type   = "metric"
-        x      = 12
-        y      = 6
-        width  = 12
-        height = 6
+        type = "metric", x = 12, y = 6, width = 12, height = 6
         properties = {
-          title   = "RDS - Database Connections"
-          region  = var.aws_region
-          period  = 60
-          stat    = "Average"
-          metrics = [["AWS/RDS", "DatabaseConnections",
-            "DBInstanceIdentifier", module.rds.db_identifier]]
+          title = "RDS - CPU Utilization", region = var.aws_region, period = 60, stat = "Average"
+          metrics = [["AWS/RDS", "CPUUtilization", "DBInstanceIdentifier", module.rds.db_identifier]]
         }
       },
       {
-        type   = "metric"
-        x      = 0
-        y      = 12
-        width  = 12
-        height = 6
+        type = "metric", x = 0, y = 12, width = 12, height = 6
         properties = {
-          title   = "EC2 - Memory Used %"
-          region  = var.aws_region
-          period  = 60
-          stat    = "Average"
-          metrics = [["CWAgent", "mem_used_percent",
-            "AutoScalingGroupName", module.asg.asg_name]]
+          title = "RDS - Free Storage Space", region = var.aws_region, period = 60, stat = "Average"
+          metrics = [["AWS/RDS", "FreeStorageSpace", "DBInstanceIdentifier", module.rds.db_identifier]]
         }
       },
       {
-        type   = "metric"
-        x      = 12
-        y      = 12
-        width  = 12
-        height = 6
+        type = "metric", x = 12, y = 12, width = 12, height = 6
         properties = {
-          title   = "EC2 - Disk Used %"
-          region  = var.aws_region
-          period  = 60
-          stat    = "Average"
-          metrics = [["CWAgent", "disk_used_percent",
-            "AutoScalingGroupName", module.asg.asg_name]]
-        }
-      },
-      {
-        type   = "metric"
-        x      = 0
-        y      = 18
-        width  = 12
-        height = 6
-        properties = {
-          title   = "EC2 - Network In/Out"
-          region  = var.aws_region
-          period  = 60
-          stat    = "Average"
-          metrics = [
-            ["AWS/EC2", "NetworkIn", "AutoScalingGroupName", module.asg.asg_name],
-            [".", "NetworkOut", ".", "."]
-          ]
-        }
-      },
-      {
-        type   = "metric"
-        x      = 12
-        y      = 18
-        width  = 12
-        height = 6
-        properties = {
-          title   = "ALB - Request Count"
-          region  = var.aws_region
-          period  = 60
-          stat    = "Sum"
-          metrics = [["AWS/ApplicationELB", "RequestCount",
-            "LoadBalancer", module.alb.alb_arn_suffix]]
+          title = "RDS - Database Connections", region = var.aws_region, period = 60, stat = "Average"
+          metrics = [["AWS/RDS", "DatabaseConnections", "DBInstanceIdentifier", module.rds.db_identifier]]
         }
       }
     ]
