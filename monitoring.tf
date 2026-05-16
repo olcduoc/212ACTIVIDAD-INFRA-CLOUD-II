@@ -115,15 +115,15 @@ resource "aws_cloudwatch_dashboard" "tienda_tech" {
       {
         type = "metric", x = 12, y = 0, width = 12, height = 6
         properties = {
-          title = "EC2 - Memory Used %", region = var.aws_region, period = 60, stat = "Average"
-          metrics = [["CWAgent", "mem_used_percent", "AutoScalingGroupName", module.asg.asg_name]]
+          title  = "EC2 - Memory Used %", region = var.aws_region, view = "timeSeries"
+          metrics = [[{ expression = "SEARCH('{CWAgent,AutoScalingGroupName,InstanceId} AutoScalingGroupName=\"${module.asg.asg_name}\" MetricName=\"mem_used_percent\"', 'Average', 60)", id = "mem" }]]
         }
       },
       {
         type = "metric", x = 0, y = 6, width = 12, height = 6
         properties = {
-          title = "EC2 - Disk Used %", region = var.aws_region, period = 60, stat = "Average"
-          metrics = [["CWAgent", "disk_used_percent", "AutoScalingGroupName", module.asg.asg_name]]
+          title  = "EC2 - Disk Used %", region = var.aws_region, view = "timeSeries"
+          metrics = [[{ expression = "SEARCH('{CWAgent,AutoScalingGroupName,InstanceId,path,device,fstype} AutoScalingGroupName=\"${module.asg.asg_name}\" MetricName=\"disk_used_percent\"', 'Average', 60)", id = "disk" }]]
         }
       },
       {
